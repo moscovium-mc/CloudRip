@@ -4,7 +4,12 @@ A tool that helps you find the real IP addresses hiding behind Cloudflare by che
 
 ## What it does
 
+- **IPv4 & IPv6 support** - Resolves both A and AAAA records
+- **Dynamic Cloudflare IP detection** - Fetches latest IP ranges from Cloudflare's API (with fallback)
 - **Fast subdomain scanning** - Uses multiple threads to speed things up
+- **Multiple wordlists** - Combine several wordlists in a single scan
+- **Multiple output formats** - Export to JSON, YAML, CSV, or plain text
+- **Verbose & quiet modes** - Control output verbosity
 - **Filters out Cloudflare IPs** - Only shows you the real server addresses
 - **Bring your own wordlist** - Or use the built-in one (dom.txt)
 - **Save your findings** - Export results to a file for later
@@ -13,9 +18,12 @@ A tool that helps you find the real IP addresses hiding behind Cloudflare by che
 
 ## Getting it running
 
-You'll need Python 3 and a couple of libraries:
+You'll need Python 3. Create a virtual environment and install dependencies:
+
 ```bash
-pip install colorama pyfiglet
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
 ## How to use it
@@ -27,24 +35,116 @@ python3 cloudrip.py example.com
 
 With all the options:
 ```bash
-python3 cloudrip.py example.com -w dom.txt -t 20 -o results.txt
+python3 cloudrip.py example.com -w wordlist1.txt -w wordlist2.txt -t 20 -o report.json -f json
 ```
 
 **Options:**
-- `<domain>` - The site you're testing (like example.com)
-- `-w <wordlist>` - Your own wordlist (defaults to dom.txt)
-- `-t <threads>` - How many threads to run (default is 10)
-- `-o <output_file>` - Save results to a file
 
-## Example
+| Option | Description |
+|--------|-------------|
+| `<domain>` | The site you're testing (like example.com) |
+| `-w, --wordlist` | Wordlist file(s). Can be specified multiple times (default: dom.txt) |
+| `-t, --threads` | How many threads to run (default: 10) |
+| `-o, --output` | Save results to a file |
+| `-f, --format` | Output format: `normal`, `json`, `yaml`, `csv` (default: normal) |
+| `-v, --verbose` | Show all results including "not found" entries |
+| `-q, --quiet` | Minimal output - only show found IPs |
+
+## Examples
+
+**Basic scan:**
 ```bash
-python3 cloudrip.py example.com -w custom_subs.txt -t 20 -o found_ips.txt
+python3 cloudrip.py example.com
+```
+
+**Multiple wordlists with JSON output:**
+```bash
+python3 cloudrip.py example.com -w subs1.txt -w subs2.txt -o report.json -f json
+```
+
+**Fast scan with 50 threads:**
+```bash
+python3 cloudrip.py example.com -t 50 -o results.csv -f csv
+```
+
+**Verbose mode (see all attempts):**
+```bash
+python3 cloudrip.py example.com -v
+```
+
+**Quiet mode (only found IPs):**
+```bash
+python3 cloudrip.py example.com -q -o found.txt
+```
+
+## Output Formats
+
+### Normal (default)
+```
+CloudRip Scan Report
+============================================================
+Target: example.com
+Date: 2025-11-28T12:00:00+00:00
+Total checked: 150
+
+[FOUND] Non-Cloudflare IPs (3):
+  mail.example.com
+    v4:192.168.1.1
+  ftp.example.com
+    v4:10.0.0.1 | v6:2001:db8::1
+
+[CLOUDFLARE] Behind Cloudflare (5):
+  www.example.com
+    v4:104.16.1.1 [CF] | v6:2606:4700::1 [CF]
+```
+
+### JSON
+```json
+{
+  "target_domain": "example.com",
+  "scan_date": "2025-11-28T12:00:00+00:00",
+  "total_checked": 150,
+  "summary": {
+    "found": 3,
+    "cloudflare": 5,
+    "not_found": 142,
+    "errors": 0
+  },
+  "results": { ... }
+}
+```
+
+### CSV
+```csv
+domain,ipv4,ipv4_cloudflare,ipv6,ipv6_cloudflare,status,error
+mail.example.com,192.168.1.1,False,,,found,
+www.example.com,104.16.1.1,True,2606:4700::1,True,cloudflare,
 ```
 
 ## Version History
 
-### v2.0.0 (Current)
-- **Massive wordlist upgrade** - Took dom.txt from 100 to 600+ subdomains
+### v2.1.0 (Current)
+**New Features:**
+- Full IPv6 support (AAAA record resolution)
+- Dynamic Cloudflare IP range fetching from official API
+- Multiple output formats: JSON, YAML, CSV, normal text
+- Multiple wordlists support (combine with `-w file1.txt -w file2.txt`)
+- Verbose mode (`-v`) to see all results including not found
+- Quiet mode (`-q`) for minimal output
+- Automatic root domain checking before subdomain scan
+- Comprehensive scan summary with statistics
+- Structured report with categorized results (found, cloudflare, not_found, errors)
+
+**Technical Improvements:**
+- Complete rewrite with object-oriented architecture
+- Type hints throughout the codebase
+- Dataclasses for structured data handling
+- Better error handling (LifetimeTimeout, EOFError)
+- Cleaner executor shutdown on interrupt
+- Reduced rate limiting delay (0.1s → 0.05s)
+
+**Wordlist Improvements:**
+- Massive wordlist upgrade - Took dom.txt from 100 to 600+ subdomains
 - Added API variants, cloud infrastructure, IoT endpoints
 - Covers auth/security, payment gateways, analytics, CI/CD pipelines
 - Way better geo coverage - cities and more countries
