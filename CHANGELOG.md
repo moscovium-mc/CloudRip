@@ -14,6 +14,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Cloudflare IPv6 IP ranges detection (7 ranges)
 - Results now display both IPv4 and IPv6 addresses with individual Cloudflare status indicators
 
+#### Multiple IPs Detection
+- DNS resolution now returns ALL IPs for a domain, not just the first one
+- Each IP is individually checked against Cloudflare ranges
+- Output displays all IPs in list format: `v4:[ip1, ip2, ip3]`
+- CSV export uses semicolon separator for multiple IPs
+
+#### Progress Bar
+- Added real-time progress bar during subdomain scanning using `tqdm`
+- Shows elapsed time and estimated time remaining
+- Displays live stats: found count and cloudflare count
+- Automatically disabled in quiet mode (`-q`)
+
+#### Wordlist Improvements
+- Added support for comments in wordlists (lines starting with `#` are ignored)
+- Empty lines are automatically skipped
+
 #### Dynamic Cloudflare IP Ranges
 - Added dynamic fetching of Cloudflare IP ranges from official API endpoints (`https://www.cloudflare.com/ips-v4` and `https://www.cloudflare.com/ips-v6`)
 - Added fallback mechanism to hardcoded ranges if API is unreachable
@@ -47,7 +63,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Count of errors (if any)
 
 #### Data Classes and Type Hints
-- Added `ResolveResult` dataclass for structured result storage
+- Added `ResolveResult` dataclass for structured result storage with list-based IP fields
+- `ResolveResult.ipv4` and `ResolveResult.ipv6` are now `list[str]` to store multiple IPs
+- `ResolveResult.ipv4_cloudflare` and `ResolveResult.ipv6_cloudflare` store which IPs are behind CF
+- Added `ipv4_non_cf` and `ipv6_non_cf` properties to filter non-Cloudflare IPs
 - Added `ScanReport` dataclass for complete scan reports with serialization support
 - Added `CloudflareIPRanges` class for IP range management
 - Added `ReportWriter` class for multi-format output handling
@@ -106,6 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Dependencies
 - Added `requests` library for HTTP API calls
+- Added `tqdm` library for progress bar
 - Added `csv` module usage for CSV export
 - Added `json` module for JSON serialization
 - Added `datetime` with timezone support for scan timestamps

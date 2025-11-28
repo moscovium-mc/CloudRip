@@ -17,7 +17,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from enum import Enum
-from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network, AddressValueError
+from ipaddress import (
+    IPv4Address,
+    IPv4Network,
+    IPv6Address,
+    IPv6Network,
+    AddressValueError,
+)
 from pathlib import Path
 from typing import Optional, TextIO
 
@@ -25,6 +31,7 @@ import dns.resolver
 import pyfiglet
 import requests
 from colorama import Fore, Style, init
+from tqdm import tqdm
 
 init(autoreset=True)
 
@@ -55,28 +62,40 @@ class ResolveResult:
     """Result of a DNS resolution attempt."""
 
     domain: str
-    ipv4: Optional[str] = None
-    ipv6: Optional[str] = None
+    ipv4: list[str] = field(default_factory=list)
+    ipv6: list[str] = field(default_factory=list)
     status: str = "unknown"
-    ipv4_cloudflare: bool = False
-    ipv6_cloudflare: bool = False
+    ipv4_cloudflare: list[str] = field(default_factory=list)  # IPs that are behind CF
+    ipv6_cloudflare: list[str] = field(default_factory=list)  # IPs that are behind CF
     error: Optional[str] = None
+
+    @property
+    def ipv4_non_cf(self) -> list[str]:
+        """Get IPv4 addresses not behind Cloudflare."""
+        return [ip for ip in self.ipv4 if ip not in self.ipv4_cloudflare]
+
+    @property
+    def ipv6_non_cf(self) -> list[str]:
+        """Get IPv6 addresses not behind Cloudflare."""
+        return [ip for ip in self.ipv6 if ip not in self.ipv6_cloudflare]
 
     @property
     def has_non_cf_ip(self) -> bool:
         """Check if at least one IP is not behind Cloudflare."""
-        has_v4 = self.ipv4 and not self.ipv4_cloudflare
-        has_v6 = self.ipv6 and not self.ipv6_cloudflare
-        return has_v4 or has_v6
+        return bool(self.ipv4_non_cf or self.ipv6_non_cf)
 
     @property
     def all_cloudflare(self) -> bool:
         """Check if all resolved IPs are Cloudflare."""
         if not self.ipv4 and not self.ipv6:
             return False
-        v4_cf = self.ipv4_cloudflare if self.ipv4 else True
-        v6_cf = self.ipv6_cloudflare if self.ipv6 else True
-        return v4_cf and v6_cf
+        all_v4_cf = (
+            all(ip in self.ipv4_cloudflare for ip in self.ipv4) if self.ipv4 else True
+        )
+        all_v6_cf = (
+            all(ip in self.ipv6_cloudflare for ip in self.ipv6) if self.ipv6 else True
+        )
+        return all_v4_cf and all_v6_cf
 
 
 @dataclass
@@ -84,7 +103,9 @@ class ScanReport:
     """Complete scan report."""
 
     target_domain: str
-    scan_date: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    scan_date: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     total_checked: int = 0
     found: list[ResolveResult] = field(default_factory=list)
     cloudflare: list[ResolveResult] = field(default_factory=list)
@@ -181,7 +202,11 @@ class CloudflareIPRanges:
         try:
             response = requests.get(url, timeout=self.timeout)
             response.raise_for_status()
-            return [line.strip() for line in response.text.strip().split("\n") if line.strip()]
+            return [
+                line.strip()
+                for line in response.text.strip().split("\n")
+                if line.strip()
+            ]
         except requests.RequestException:
             return []
 
@@ -232,11 +257,17 @@ class ReportWriter:
         """Format IPs with Cloudflare status indicators."""
         parts = []
         if result.ipv4:
-            cf_tag = " [CF]" if result.ipv4_cloudflare else ""
-            parts.append(f"v4:{result.ipv4}{cf_tag}")
+            v4_formatted = []
+            for ip in result.ipv4:
+                cf_tag = " [CF]" if ip in result.ipv4_cloudflare else ""
+                v4_formatted.append(f"{ip}{cf_tag}")
+            parts.append(f"v4:[{', '.join(v4_formatted)}]")
         if result.ipv6:
-            cf_tag = " [CF]" if result.ipv6_cloudflare else ""
-            parts.append(f"v6:{result.ipv6}{cf_tag}")
+            v6_formatted = []
+            for ip in result.ipv6:
+                cf_tag = " [CF]" if ip in result.ipv6_cloudflare else ""
+                v6_formatted.append(f"{ip}{cf_tag}")
+            parts.append(f"v6:[{', '.join(v6_formatted)}]")
         return " | ".join(parts) if parts else "N/A"
 
     @staticmethod
@@ -303,18 +334,30 @@ class ReportWriter:
     @staticmethod
     def _write_csv(report: ScanReport, output: TextIO) -> None:
         writer = csv.writer(output)
-        writer.writerow(["domain", "ipv4", "ipv4_cloudflare", "ipv6", "ipv6_cloudflare", "status", "error"])
+        writer.writerow(
+            [
+                "domain",
+                "ipv4",
+                "ipv4_cloudflare",
+                "ipv6",
+                "ipv6_cloudflare",
+                "status",
+                "error",
+            ]
+        )
 
         for r in report.found + report.cloudflare + report.not_found + report.errors:
-            writer.writerow([
-                r.domain,
-                r.ipv4 or "",
-                r.ipv4_cloudflare,
-                r.ipv6 or "",
-                r.ipv6_cloudflare,
-                r.status,
-                r.error or "",
-            ])
+            writer.writerow(
+                [
+                    r.domain,
+                    ";".join(r.ipv4) if r.ipv4 else "",
+                    ";".join(r.ipv4_cloudflare) if r.ipv4_cloudflare else "",
+                    ";".join(r.ipv6) if r.ipv6 else "",
+                    ";".join(r.ipv6_cloudflare) if r.ipv6_cloudflare else "",
+                    r.status,
+                    r.error or "",
+                ]
+            )
 
 
 class CloudRip:
@@ -350,17 +393,21 @@ class CloudRip:
         if level == "verbose" and not self.verbose:
             return
 
-        print(message)
+        tqdm.write(message)
 
     def display_banner(self) -> None:
         if self.quiet:
             return
 
         figlet_text = pyfiglet.Figlet(font="slant").renderText("CloudRip")
-        print(f"{Colors.BLUE}{figlet_text}")
-        print(f"{Colors.RED}CloudFlare Bypasser - Find Real IP Addresses Behind Cloudflare")
-        print(f'{Colors.YELLOW}"Ripping through the clouds to expose the truth"')
-        print(f"{Colors.WHITE}GitHub: {Colors.BLUE}https://github.com/lucky89144/CloudRip\n")
+        tqdm.write(f"{Colors.BLUE}{figlet_text}")
+        tqdm.write(
+            f"{Colors.RED}CloudFlare Bypasser - Find Real IP Addresses Behind Cloudflare"
+        )
+        tqdm.write(f'{Colors.YELLOW}"Ripping through the clouds to expose the truth"')
+        tqdm.write(
+            f"{Colors.WHITE}GitHub: {Colors.BLUE}https://github.com/lucky89144/CloudRip\n"
+        )
 
     def load_wordlists(self) -> list[str]:
         """Load and merge all wordlists."""
@@ -373,8 +420,9 @@ class CloudRip:
 
             with open(wordlist_path, "r", encoding="utf-8") as f:
                 for line in f:
-                    if line.strip():
-                        subdomains.add(line.strip())
+                    stripped = line.strip()
+                    if stripped and not stripped.startswith("#"):
+                        subdomains.add(stripped)
 
             self.log(f"{Colors.YELLOW}[INFO] Loaded wordlist: {wordlist_path}")
 
@@ -384,19 +432,24 @@ class CloudRip:
 
         return sorted(subdomains)
 
-    def _resolve_record(self, domain: str, record_type: str) -> Optional[str]:
-        """Resolve a single DNS record type."""
+    def _resolve_record(self, domain: str, record_type: str) -> list[str]:
+        """Resolve a DNS record type and return all IPs."""
+        ips = []
         try:
             answers = dns.resolver.resolve(domain, record_type)
             for rdata in answers:
-                return rdata.address
-        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer,
-                dns.resolver.NoNameservers, dns.resolver.Timeout,
-                dns.resolver.LifetimeTimeout):
+                ips.append(rdata.address)
+        except (
+            dns.resolver.NXDOMAIN,
+            dns.resolver.NoAnswer,
+            dns.resolver.NoNameservers,
+            dns.resolver.Timeout,
+            dns.resolver.LifetimeTimeout,
+        ):
             pass
         except Exception:
             pass
-        return None
+        return ips
 
     def resolve_domain(self, subdomain: Optional[str] = None) -> ResolveResult:
         """Resolve a domain or subdomain for both A and AAAA records."""
@@ -404,17 +457,19 @@ class CloudRip:
 
         result = ResolveResult(domain=full_domain)
 
-        # Resolve IPv4 (A record)
-        ipv4 = self._resolve_record(full_domain, "A")
-        if ipv4:
-            result.ipv4 = ipv4
-            result.ipv4_cloudflare = self.cf_ranges.is_cloudflare_ip(ipv4)
+        # Resolve IPv4 (A records) - get ALL IPs
+        ipv4_list = self._resolve_record(full_domain, "A")
+        result.ipv4 = ipv4_list
+        result.ipv4_cloudflare = [
+            ip for ip in ipv4_list if self.cf_ranges.is_cloudflare_ip(ip)
+        ]
 
-        # Resolve IPv6 (AAAA record)
-        ipv6 = self._resolve_record(full_domain, "AAAA")
-        if ipv6:
-            result.ipv6 = ipv6
-            result.ipv6_cloudflare = self.cf_ranges.is_cloudflare_ip(ipv6)
+        # Resolve IPv6 (AAAA records) - get ALL IPs
+        ipv6_list = self._resolve_record(full_domain, "AAAA")
+        result.ipv6 = ipv6_list
+        result.ipv6_cloudflare = [
+            ip for ip in ipv6_list if self.cf_ranges.is_cloudflare_ip(ip)
+        ]
 
         # Determine status
         if not result.ipv4 and not result.ipv6:
@@ -433,11 +488,21 @@ class CloudRip:
         """Log a found (non-CF) result."""
         parts = []
         if result.ipv4:
-            tag = f"{Colors.YELLOW}[CF]" if result.ipv4_cloudflare else ""
-            parts.append(f"v4:{result.ipv4}{tag}")
+            v4_parts = []
+            for ip in result.ipv4:
+                if ip in result.ipv4_cloudflare:
+                    v4_parts.append(f"{ip}{Colors.YELLOW}[CF]{Colors.WHITE}")
+                else:
+                    v4_parts.append(ip)
+            parts.append(f"v4:[{', '.join(v4_parts)}]")
         if result.ipv6:
-            tag = f"{Colors.YELLOW}[CF]" if result.ipv6_cloudflare else ""
-            parts.append(f"v6:{result.ipv6}{tag}")
+            v6_parts = []
+            for ip in result.ipv6:
+                if ip in result.ipv6_cloudflare:
+                    v6_parts.append(f"{ip}{Colors.YELLOW}[CF]{Colors.WHITE}")
+                else:
+                    v6_parts.append(ip)
+            parts.append(f"v6:[{', '.join(v6_parts)}]")
 
         ips_str = f"{Colors.WHITE} | ".join(parts)
         self.log(f"{Colors.GREEN}[FOUND] {result.domain} -> {ips_str}")
@@ -446,9 +511,9 @@ class CloudRip:
         """Log a Cloudflare result."""
         parts = []
         if result.ipv4:
-            parts.append(f"v4:{result.ipv4}")
+            parts.append(f"v4:[{', '.join(result.ipv4)}]")
         if result.ipv6:
-            parts.append(f"v6:{result.ipv6}")
+            parts.append(f"v6:[{', '.join(result.ipv6)}]")
 
         ips_str = " | ".join(parts)
         self.log(f"{Colors.YELLOW}[CLOUDFLARE] {result.domain} -> {ips_str}")
@@ -479,16 +544,16 @@ class CloudRip:
     def handle_interrupt(self, signum: int, frame) -> None:
         """Handle Ctrl+C gracefully."""
         if self.stop_requested:
-            print(f"{Colors.RED}\n[INFO] Force quitting...")
+            tqdm.write(f"{Colors.RED}\n[INFO] Force quitting...")
             sys.exit(0)
 
-        print(f"{Colors.RED}\n[INFO] Ctrl+C detected. Quit? (y/n): ", end="")
+        tqdm.write(f"{Colors.RED}\n[INFO] Ctrl+C detected. Quit? (y/n): ")
 
         try:
             if input().strip().lower() == "y":
                 self.stop_requested = True
             else:
-                print(f"{Colors.YELLOW}[INFO] Resuming...")
+                tqdm.write(f"{Colors.YELLOW}[INFO] Resuming...")
         except EOFError:
             self.stop_requested = True
 
@@ -527,20 +592,36 @@ class CloudRip:
         # Scan subdomains
         with ThreadPoolExecutor(max_workers=self.threads) as executor:
             futures = {
-                executor.submit(self.resolve_domain, sub): sub
-                for sub in subdomains
+                executor.submit(self.resolve_domain, sub): sub for sub in subdomains
             }
 
-            for future in as_completed(futures):
-                if self.stop_requested:
-                    self.log(f"{Colors.RED}[INFO] Scan interrupted.")
-                    executor.shutdown(wait=False, cancel_futures=True)
-                    break
+            # Progress bar (disabled in quiet mode)
+            with tqdm(
+                total=len(futures),
+                desc=f"{Colors.CYAN}Scanning",
+                unit="sub",
+                disable=self.quiet,
+                bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}] {postfix}",
+                ncols=80,
+                leave=False,
+            ) as pbar:
+                for future in as_completed(futures):
+                    if self.stop_requested:
+                        self.log(f"{Colors.RED}[INFO] Scan interrupted.")
+                        executor.shutdown(wait=False, cancel_futures=True)
+                        break
 
-                result = future.result()
-                self.add_result(result)
-                self.report.total_checked += 1
-                time.sleep(0.05)
+                    result = future.result()
+                    self.add_result(result)
+                    self.report.total_checked += 1
+                    pbar.update(1)
+
+                    # Update progress bar with current stats
+                    found = len(self.report.found)
+                    cf = len(self.report.cloudflare)
+                    pbar.set_postfix_str(f"found:{found} cf:{cf}")
+
+                    time.sleep(0.05)
 
         # Summary
         self.log(f"\n{Colors.WHITE}{'=' * 60}")
@@ -574,7 +655,8 @@ Examples:
     parser.add_argument("domain", help="Target domain (e.g., example.com)")
 
     parser.add_argument(
-        "-w", "--wordlist",
+        "-w",
+        "--wordlist",
         action="append",
         dest="wordlists",
         default=[],
@@ -582,32 +664,37 @@ Examples:
     )
 
     parser.add_argument(
-        "-t", "--threads",
+        "-t",
+        "--threads",
         type=int,
         default=10,
         help="Concurrent threads (default: 10)",
     )
 
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         help="Output file for report",
     )
 
     parser.add_argument(
-        "-f", "--format",
+        "-f",
+        "--format",
         choices=["normal", "json", "yaml", "csv"],
         default="normal",
         help="Output format (default: normal)",
     )
 
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="store_true",
         help="Show all results including not found",
     )
 
     parser.add_argument(
-        "-q", "--quiet",
+        "-q",
+        "--quiet",
         action="store_true",
         help="Minimal output (only found IPs)",
     )
