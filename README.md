@@ -198,6 +198,16 @@ Huge thanks to [@Dxsk](https://github.com/Dxsk) for the contributions to v2.1.0
 
 Got ideas for improvements? Found a bug? If it's better wordlists, new features, or bug fixes - all contributions help.
 
+## Support
+
+If you find this project useful, consider supporting my work:
+
+<a href="https://buymeacoffee.com/webmoney" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="40"></a>
+
+**Crypto donations:**
+- <img src="https://img.shields.io/badge/Bitcoin-000000?style=plastic&logo=bitcoin&logoColor=white" alt="Bitcoin"> `bc1quavqz6cxqzfy4qtvq4zxc4fjgap3s7cmxja0k4`  
+- <img src="https://img.shields.io/badge/Monero-FF6600?style=plastic&logo=monero&logoColor=white" alt="Monero"> `86zv6vTDuG35sdBzBpwVAsD71hbt2gjH14qiesyrSsMkUAWHQkPZyY9TreeQ5dXRuP57yitP4Yn13SQEcMK4MhtwFzPoRR1`
+
 ## Important Legal Stuff
 
 **Only use CloudRip on systems you have permission to test.** This tool is for ethical security research, penetration testing with authorization, and educational purposes. Using it against websites without permission is illegal and not cool. You're responsible for how you use this tool.
