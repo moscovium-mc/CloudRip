@@ -17,6 +17,20 @@
 
 A tool that helps you find the real IP addresses hiding behind Cloudflare by checking subdomains. For penetration testing, security research, and learning how Cloudflare protection works.
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Installation](#installation)
+- [How to use it](#how-to-use-it)
+- [Examples](#examples)
+- [Output Formats](#output-formats)
+- [Version History](#version-history)
+- [Contributors](#contributors)
+- [Contributing](#contributing)
+- [Support](#support)
+- [Legal Notice](#legal-notice)
+- [License](#license)
+
 ## What it does
 
 - **IPv4 & IPv6 support** - Resolves both A and AAAA records
@@ -34,15 +48,39 @@ A tool that helps you find the real IP addresses hiding behind Cloudflare by che
 - **Rate limiting** - Won't spam the target and get you blocked
 - **Solid default wordlist** - Organized and comprehensive for better results
 
-## Getting it running
+## Installation
 
-You'll need Python 3. Create a virtual environment and install dependencies:
+### Requirements
 
+- Python 3.8 or higher
+- pip (Python package manager)
+
+### Setup
+
+Clone the repository:
+```bash
+git clone https://github.com/moscovium-mc/CloudRip
+cd CloudRip
+```
+
+Create a virtual environment and install dependencies:
+
+**Linux/macOS:**
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
+
+**Windows:**
+```powershell
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+> [!TIP]
+> Always use a virtual environment to avoid dependency conflicts with other Python projects.
 
 ## How to use it
 
@@ -197,6 +235,20 @@ Huge thanks to [@Dxsk](https://github.com/Dxsk) for the contributions to v2.1.0
 
 Got ideas for improvements? Found a bug? If it's better wordlists, new features, or bug fixes - all contributions help.
 
+**How to contribute:**
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a pull request
+
+**Guidelines:**
+- Follow Python best practices and PEP 8
+- Add type hints to new code
+- Update documentation as needed
+- Test your changes thoroughly
+
 ## Support
 
 If you find this project useful, consider supporting my work:
@@ -209,10 +261,34 @@ If you find this project useful, consider supporting my work:
 - <a href="solana:HYZjfEx8NbEMJX1vL1GmGj39zA6TgMsHm5KCHWSZxF4j"><img src="https://img.shields.io/badge/Solana-9945FF?style=plastic&logo=solana&logoColor=white" alt="Solana"></a> `HYZjfEx8NbEMJX1vL1GmGj39zA6TgMsHm5KCHWSZxF4j`
 - <a href="monero:86zv6vTDuG35sdBzBpwVAsD71hbt2gjH14qiesyrSsMkUAWHQkPZyY9TreeQ5dXRuP57yitP4Yn13SQEcMK4MhtwFzPoRR1"><img src="https://img.shields.io/badge/Monero-FF6600?style=plastic&logo=monero&logoColor=white" alt="Monero"></a> `86zv6vTDuG35sdBzBpwVAsD71hbt2gjH14qiesyrSsMkUAWHQkPZyY9TreeQ5dXRuP57yitP4Yn13SQEcMK4MhtwFzPoRR1`
 
-## Important Legal Stuff
+## Legal Notice
 
-**Only use CloudRip on systems you have permission to test.** This tool is for ethical security research, penetration testing with authorization, and educational purposes. Using it against websites without permission is illegal and not cool. You're responsible for how you use this tool.
+> [!WARNING]
+> **FOR AUTHORIZED SECURITY TESTING ONLY**
+
+**Only use CloudRip on systems you have explicit permission to test.** This tool is designed for ethical security research, authorized penetration testing, and educational purposes only.
+
+**Unauthorized reconnaissance or scanning of systems is illegal** and may violate various laws including:
+- Computer Fraud and Abuse Act (CFAA) in the United States
+- Computer Misuse Act in the United Kingdom
+- Similar legislation in other jurisdictions
+
+**You are solely responsible for how you use this tool.** The author assumes NO LIABILITY for any misuse, damage, or illegal activity conducted with CloudRip.
+
+**Ethical Use Required:**
+- Obtain written authorization before testing
+- Respect rate limits and system resources
+- Follow responsible disclosure practices
+- Comply with all applicable laws and regulations
 
 ## License
 
-MIT License - use responsibly.
+MIT License - See [LICENSE](LICENSE) for details.
+
+---
+
+<div align="center">
+
+**[Star this repo](https://github.com/moscovium-mc/CloudRip)** if you find it useful
+
+</div>
