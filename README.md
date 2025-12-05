@@ -13,7 +13,6 @@
 [![Issues](https://img.shields.io/github/issues/moscovium-mc/CloudRip)](https://github.com/moscovium-mc/CloudRip/issues)
 
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/moscovium-mc/CloudRip/graphs/commit-activity)
-[![Last Commit](https://img.shields.io/github/last-commit/moscovium-mc/CloudRip)](https://github.com/moscovium-mc/CloudRip/commits/main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 A tool that helps you find the real IP addresses hiding behind Cloudflare by checking subdomains. For penetration testing, security research, and learning how Cloudflare protection works.
