@@ -9,7 +9,6 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/moscovium-mc/CloudRip?style=social)](https://github.com/moscovium-mc/CloudRip/stargazers)
 [![Forks](https://img.shields.io/github/forks/moscovium-mc/CloudRip?style=social)](https://github.com/moscovium-mc/CloudRip/network/members)
-[![Contributors](https://img.shields.io/badge/contributors-2-blue.svg)](https://github.com/moscovium-mc/CloudRip/graphs/contributors)
 [![Issues](https://img.shields.io/github/issues/moscovium-mc/CloudRip)](https://github.com/moscovium-mc/CloudRip/issues)
 
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/moscovium-mc/CloudRip/graphs/commit-activity)
