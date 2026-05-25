@@ -260,6 +260,25 @@ If you find this project useful, consider supporting my work:
 - <a href="solana:HYZjfEx8NbEMJX1vL1GmGj39zA6TgMsHm5KCHWSZxF4j"><img src="https://img.shields.io/badge/Solana-9945FF?style=plastic&logo=solana&logoColor=white" alt="Solana"></a> `HYZjfEx8NbEMJX1vL1GmGj39zA6TgMsHm5KCHWSZxF4j`
 - <a href="monero:86zv6vTDuG35sdBzBpwVAsD71hbt2gjH14qiesyrSsMkUAWHQkPZyY9TreeQ5dXRuP57yitP4Yn13SQEcMK4MhtwFzPoRR1"><img src="https://img.shields.io/badge/Monero-FF6600?style=plastic&logo=monero&logoColor=white" alt="Monero"></a> `86zv6vTDuG35sdBzBpwVAsD71hbt2gjH14qiesyrSsMkUAWHQkPZyY9TreeQ5dXRuP57yitP4Yn13SQEcMK4MhtwFzPoRR1`
 
+## Need to Avoid Rate Limits?
+
+CloudRip makes many DNS queries. Cloudflare will eventually block your IP.
+
+**Solution:** Residential proxies rotate your IP address so you can scan without getting blocked.
+
+### Recommended Proxy Service
+
+[![ScrapingAnt](https://img.shields.io/badge/Proxies-ScrapingAnt-0055FF?style=for-the-badge&logo=cloudflare&logoColor=white)](https://scrapingant.com/?ref=m2izy2z)
+
+**Why ScrapingAnt?**
+- 3M+ residential IPs across 100+ countries
+- Supports security testing workflows
+- Free 10,000 credits to start
+
+👉 **[Sign up for ScrapingAnt](https://scrapingant.com/?ref=m2izy2z)**
+
+*Note: Run CloudRip through a system-wide proxy or use ScrapingAnt's API for reconnaissance tasks. Direct SOCKS proxy support coming when ScrapingAnt adds it.*
+
 ## Legal Notice
 
 > [!WARNING]
