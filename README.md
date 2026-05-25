@@ -27,6 +27,7 @@ A tool that helps you find the real IP addresses hiding behind Cloudflare by che
 - [Contributors](#contributors)
 - [Contributing](#contributing)
 - [Support](#support)
+- [Need to avoid Rate Limits?](#need-to-avoid-rate-limits)
 - [Legal Notice](#legal-notice)
 - [License](#license)
 
