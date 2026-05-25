@@ -178,53 +178,7 @@ www.example.com,104.16.1.1;172.67.1.1,104.16.1.1;172.67.1.1,2606:4700::1,2606:47
 
 ## Version History
 
-### v2.1.0 (Current)
-
-**New Features:**
-- Full IPv6 support (AAAA record resolution)
-- Multiple IPs detection - Resolves ALL IPs behind a domain (A/AAAA records can return multiple IPs)
-- Real-time progress bar with live stats
-- Dynamic Cloudflare IP range fetching from official API
-- Multiple output formats: JSON, YAML, CSV, normal text
-- Multiple wordlists support (combine with `-w file1.txt -w file2.txt`)
-- Verbose mode (`-v`) to see all results including not found
-- Quiet mode (`-q`) for minimal output
-- Automatic root domain checking before subdomain scan
-- Comprehensive scan summary with statistics
-- Structured report with categorized results (found, cloudflare, not_found, errors)
-- Wordlist comment support (lines starting with `#`)
-
-**Technical Improvements:**
-- Complete rewrite with object-oriented architecture
-- Type hints throughout the codebase
-- Dataclasses for structured data handling
-- Better error handling (LifetimeTimeout, EOFError)
-- Cleaner executor shutdown on interrupt
-- Reduced rate limiting delay (0.1s → 0.05s)
-
-### v2.0.0
-
-**Wordlist Improvements:**
-- Massive wordlist upgrade - Took dom.txt from 100 to 600+ subdomains
-- Added API variants, cloud infrastructure, IoT endpoints
-- Covers auth/security, payment gateways, analytics, CI/CD pipelines
-- Way better geo coverage - cities and more countries
-- Handles modern cloud-native and microservices setups
-- Better database and service discovery hits
-
-### v1.5.0
-- Rate limiting so you don't get blocked
-- Thread handling works better now
-- Doesn't crash on DNS failures anymore
-- Prettier output with colors
-
-### v1.0.0
-- First drop with the core stuff
-- Multi-threaded subdomain scanning
-- Filters out Cloudflare IPs
-- Bring your own wordlist
-- Save results to file
-- Basic dom.txt with ~100 entries
+See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
 ## Contributors
 
