@@ -230,7 +230,7 @@ CloudRip makes many DNS queries. Cloudflare will eventually block your IP.
 - Supports security testing workflows
 - Free 10,000 credits to start
 
-👉 **[Sign up for ScrapingAnt](https://scrapingant.com/?ref=m2izy2z)**
+👉 **[Sign up for ScrapingAnt](https://scrapingant.com/?ref=m2izy2z)** use code **moscovium** for 5% off.
 
 *Note: Run CloudRip through a system-wide proxy or use ScrapingAnt's API. Direct SOCKS proxy support coming when ScrapingAnt adds it.*
 
